@@ -9,9 +9,12 @@ using NHibernate.Linq;
 
 namespace NHibernate.AspNetCore.Identity {
 
-    public class UserStore<TUser, TRole> :
-        UserStoreBase<TUser, TRole, string, IdentityUserClaim, IdentityUserRole, IdentityUserLogin, IdentityUserToken, IdentityRoleClaim>,
-        IProtectedUserStore<TUser> where TUser : IdentityUser where TRole : IdentityRole {
+    public class UserStore<TUser, TRole, TKey> :
+        UserStoreBase<TUser, TRole, TKey, IdentityUserClaim<TKey>, IdentityUserRole<TKey>, Entities.IdentityUserLogin<TKey>, Entities.IdentityUserToken<TKey>, IdentityRoleClaim<TKey>>,
+        IProtectedUserStore<TUser>
+        where TUser : IdentityUser<TKey>
+        where TRole : IdentityRole<TKey>
+        where TKey : IEquatable<TKey> {
 
         private readonly ISession session;
 
@@ -26,13 +29,13 @@ namespace NHibernate.AspNetCore.Identity {
 
         private IQueryable<TRole> Roles => session.Query<TRole>();
 
-        private IQueryable<IdentityUserClaim> UserClaims => session.Query<IdentityUserClaim>();
+        private IQueryable<IdentityUserClaim<TKey>> UserClaims => session.Query<IdentityUserClaim<TKey>>();
 
-        private IQueryable<IdentityUserRole> UserRoles => session.Query<IdentityUserRole>();
+        private IQueryable<IdentityUserRole<TKey>> UserRoles => session.Query<IdentityUserRole<TKey>>();
 
-        private IQueryable<IdentityUserLogin> UserLogins => session.Query<IdentityUserLogin>();
+        private IQueryable<Entities.IdentityUserLogin<TKey>> UserLogins => session.Query<Entities.IdentityUserLogin<TKey>>();
 
-        private IQueryable<IdentityUserToken> UserTokens => session.Query<IdentityUserToken>();
+        private IQueryable<Entities.IdentityUserToken<TKey>> UserTokens => session.Query<Entities.IdentityUserToken<TKey>>();
 
         public override async Task<IdentityResult> CreateAsync(
             TUser user,
@@ -126,9 +129,9 @@ namespace NHibernate.AspNetCore.Identity {
             return role;
         }
 
-        protected override async Task<IdentityUserRole> FindUserRoleAsync(
-            string userId,
-            string roleId,
+        protected override async Task<IdentityUserRole<TKey>> FindUserRoleAsync(
+            TKey userId,
+            TKey roleId,
             CancellationToken cancellationToken
         ) {
             cancellationToken.ThrowIfCancellationRequested();
@@ -140,8 +143,9 @@ namespace NHibernate.AspNetCore.Identity {
             return userRole;
         }
 
+
         protected override async Task<TUser> FindUserAsync(
-            string userId,
+            TKey userId,
             CancellationToken cancellationToken
         ) {
             cancellationToken.ThrowIfCancellationRequested();
@@ -153,8 +157,8 @@ namespace NHibernate.AspNetCore.Identity {
             return user;
         }
 
-        protected override async Task<IdentityUserLogin> FindUserLoginAsync(
-            string userId,
+        protected override async Task<Entities.IdentityUserLogin<TKey>> FindUserLoginAsync(
+            TKey userId,
             string loginProvider,
             string providerKey,
             CancellationToken cancellationToken
@@ -169,7 +173,7 @@ namespace NHibernate.AspNetCore.Identity {
             return userLogin;
         }
 
-        protected override async Task<IdentityUserLogin> FindUserLoginAsync(
+        protected override async Task<Entities.IdentityUserLogin<TKey>> FindUserLoginAsync(
             string loginProvider,
             string providerKey,
             CancellationToken cancellationToken
@@ -252,7 +256,7 @@ namespace NHibernate.AspNetCore.Identity {
             var userId = user.Id;
             var query = from r in Roles
                 join ur in UserRoles on r.Id equals ur.RoleId
-                where ur.UserId == userId
+                where ur.UserId.Equals(userId)
                 select r.Name;
             var roles = await query.ToListAsync(cancellationToken);
             return roles;
@@ -514,7 +518,7 @@ namespace NHibernate.AspNetCore.Identity {
             return new List<TUser>();
         }
 
-        protected override async Task<IdentityUserToken> FindTokenAsync(
+        protected override async Task<Entities.IdentityUserToken<TKey>> FindTokenAsync(
             TUser user,
             string loginProvider,
             string name,
@@ -561,7 +565,7 @@ namespace NHibernate.AspNetCore.Identity {
             await FlushChangesAsync(cancellationToken);
         }
 
-        protected override async Task AddUserTokenAsync(IdentityUserToken token) {
+        protected override async Task AddUserTokenAsync(Entities.IdentityUserToken<TKey> token) {
             ThrowIfDisposed();
             if (token == null) {
                 throw new ArgumentNullException(nameof(token));
@@ -571,7 +575,7 @@ namespace NHibernate.AspNetCore.Identity {
         }
 
         protected override async Task RemoveUserTokenAsync(
-            IdentityUserToken token
+            Entities.IdentityUserToken<TKey> token
         ) {
             ThrowIfDisposed();
             if (token == null) {

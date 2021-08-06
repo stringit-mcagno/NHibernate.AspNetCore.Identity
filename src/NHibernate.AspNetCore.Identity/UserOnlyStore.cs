@@ -9,18 +9,21 @@ using NHibernate.Linq;
 
 namespace NHibernate.AspNetCore.Identity {
 
-    public class UserOnlyStore<TUser> : UserStoreBase<TUser, string, IdentityUserClaim, IdentityUserLogin, IdentityUserToken>,
-        IProtectedUserStore<TUser> where TUser : IdentityUser {
+    public class UserOnlyStore<TUser, TKey> : UserStoreBase<TUser, TKey, IdentityUserClaim<TKey>, IdentityUserLogin<TKey>, IdentityUserToken<TKey>>,
+        IProtectedUserStore<TUser>
+        where TUser : IdentityUser<TKey>
+        where TKey : IEquatable<TKey>
+    {
 
         private readonly ISession session;
 
         public override IQueryable<TUser> Users => session.Query<TUser>();
 
-        private IQueryable<IdentityUserClaim> UserClaims => session.Query<IdentityUserClaim>();
+        private IQueryable<IdentityUserClaim<TKey>> UserClaims => session.Query<IdentityUserClaim<TKey>>();
 
-        private IQueryable<IdentityUserLogin> UserLogins => session.Query<IdentityUserLogin>();
+        private IQueryable<IdentityUserLogin<TKey>> UserLogins => session.Query<IdentityUserLogin<TKey>>();
 
-        private IQueryable<IdentityUserToken> UserTokens => session.Query<IdentityUserToken>();
+        private IQueryable<IdentityUserToken<TKey>> UserTokens => session.Query<IdentityUserToken<TKey>>();
 
 
         public UserOnlyStore(
@@ -110,7 +113,7 @@ namespace NHibernate.AspNetCore.Identity {
         }
 
         protected override async Task<TUser> FindUserAsync(
-            string userId,
+            TKey userId,
             CancellationToken cancellationToken
         ) {
             cancellationToken.ThrowIfCancellationRequested();
@@ -122,8 +125,8 @@ namespace NHibernate.AspNetCore.Identity {
             return user;
         }
 
-        protected override async Task<IdentityUserLogin> FindUserLoginAsync(
-            string userId,
+        protected override async Task<IdentityUserLogin<TKey>> FindUserLoginAsync(
+            TKey userId,
             string loginProvider,
             string providerKey,
             CancellationToken cancellationToken
@@ -138,7 +141,7 @@ namespace NHibernate.AspNetCore.Identity {
             return userLogin;
         }
 
-        protected override async Task<IdentityUserLogin> FindUserLoginAsync(
+        protected override async Task<IdentityUserLogin<TKey>> FindUserLoginAsync(
             string loginProvider,
             string providerKey,
             CancellationToken cancellationToken
@@ -267,7 +270,7 @@ namespace NHibernate.AspNetCore.Identity {
             return await query.ToListAsync(cancellationToken);
         }
 
-        protected override async Task<IdentityUserToken> FindTokenAsync(
+        protected override async Task<IdentityUserToken<TKey>> FindTokenAsync(
             TUser user,
             string loginProvider,
             string name,
@@ -287,7 +290,7 @@ namespace NHibernate.AspNetCore.Identity {
         }
 
         protected override async Task AddUserTokenAsync(
-            IdentityUserToken token
+            IdentityUserToken<TKey> token
         ) {
             ThrowIfDisposed();
             if (token == null) {
@@ -298,7 +301,7 @@ namespace NHibernate.AspNetCore.Identity {
         }
 
         protected override async Task RemoveUserTokenAsync(
-            IdentityUserToken token
+            IdentityUserToken<TKey> token
         ) {
             ThrowIfDisposed();
             if (token == null) {

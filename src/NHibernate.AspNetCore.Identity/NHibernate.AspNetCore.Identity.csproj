@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Title>NHibernate.AspNetCore.Identity</Title>
     <Authors>beginor</Authors>
     <Description>ASPNET Core Identity provider that uses NHibernate for storage. (Build in support for PostgreSQL, SqlServer, MySql, Sqlite)</Description>
@@ -12,6 +12,7 @@
     <PackageLicense>https://github.com/nhibernate/NHibernate.AspNetCore.Identity/blob/master/LICENSE.txt</PackageLicense>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="FluentNHibernate" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="5.0.8" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="5.0.8" />
     <PackageReference Include="NHibernate" Version="5.3.9" />
