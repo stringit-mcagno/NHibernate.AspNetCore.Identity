@@ -9,16 +9,16 @@ using NHibernate.Linq;
 
 namespace NHibernate.AspNetCore.Identity {
 
-    public class RoleStore<TRole>
-        : RoleStoreBase<TRole, string, IdentityUserRole, IdentityRoleClaim> where TRole : IdentityRole {
+    public class RoleStore<TRole, TKey>
+        : RoleStoreBase<TRole, TKey, IdentityUserRole<TKey>, IdentityRoleClaim<TKey>> where TRole : IdentityRole<TKey> where TKey : IEquatable<TKey> {
 
-        private readonly ISession session;
+        private readonly ISession _session;
 
         public RoleStore(
             ISession session,
             IdentityErrorDescriber describer = null
         ) : base(describer) {
-            this.session = session ?? throw new ArgumentNullException(nameof(session));
+            this._session = session ?? throw new ArgumentNullException(nameof(session));
         }
 
         public override async Task<IdentityResult> CreateAsync(
@@ -30,7 +30,7 @@ namespace NHibernate.AspNetCore.Identity {
             if (role == null) {
                 throw new ArgumentNullException(nameof(role));
             }
-            await session.SaveAsync(role, cancellationToken);
+            await _session.SaveAsync(role, cancellationToken);
             await FlushChangesAsync(cancellationToken);
             return IdentityResult.Success;
         }
@@ -45,7 +45,7 @@ namespace NHibernate.AspNetCore.Identity {
                 throw new ArgumentNullException(nameof(role));
             }
             var exists = await Roles.AnyAsync(
-                r => r.Id == role.Id,
+                r => r.Id.Equals(role.Id),
                 cancellationToken
             );
             if (!exists) {
@@ -57,7 +57,7 @@ namespace NHibernate.AspNetCore.Identity {
                 );
             }
             role.ConcurrencyStamp = Guid.NewGuid().ToString("N");
-            await session.MergeAsync(role, cancellationToken);
+            await _session.MergeAsync(role, cancellationToken);
             await FlushChangesAsync(cancellationToken);
             return IdentityResult.Success;
         }
@@ -71,7 +71,7 @@ namespace NHibernate.AspNetCore.Identity {
             if (role == null) {
                 throw new ArgumentNullException(nameof(role));
             }
-            await session.DeleteAsync(role, cancellationToken);
+            await _session.DeleteAsync(role, cancellationToken);
             await FlushChangesAsync(cancellationToken);
             return IdentityResult.Success;
         }
@@ -85,7 +85,7 @@ namespace NHibernate.AspNetCore.Identity {
             if (role == null) {
                 throw new ArgumentNullException(nameof(role));
             }
-            return Task.FromResult(role.Id);
+            return Task.FromResult(role.Id.ToString());
         }
 
         public override Task<string> GetRoleNameAsync(
@@ -107,7 +107,7 @@ namespace NHibernate.AspNetCore.Identity {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             var id = roleId;
-            var role = await session.GetAsync<TRole>(id, cancellationToken);
+            var role = await _session.GetAsync<TRole>(id, cancellationToken);
             return role;
         }
 
@@ -125,9 +125,9 @@ namespace NHibernate.AspNetCore.Identity {
             return role;
         }
 
-        public override IQueryable<TRole> Roles => session.Query<TRole>();
+        public override IQueryable<TRole> Roles => _session.Query<TRole>();
 
-        private IQueryable<IdentityRoleClaim> RoleClaims => session.Query<IdentityRoleClaim>();
+        private IQueryable<IdentityRoleClaim<TKey>> RoleClaims => _session.Query<IdentityRoleClaim<TKey>>();
 
         public override async Task<IList<Claim>> GetClaimsAsync(
             TRole role,
@@ -140,7 +140,7 @@ namespace NHibernate.AspNetCore.Identity {
             }
 
             var claims = await RoleClaims
-                .Where(rc => rc.RoleId == role.Id)
+                .Where(rc => rc.RoleId.Equals(role.Id))
                 .Select(c => new Claim(c.ClaimType, c.ClaimValue))
                 .ToListAsync(cancellationToken);
             return claims;
@@ -160,7 +160,7 @@ namespace NHibernate.AspNetCore.Identity {
                 throw new ArgumentNullException(nameof(claim));
             }
             var roleClaim = CreateRoleClaim(role, claim);
-            await session.SaveAsync(roleClaim, cancellationToken);
+            await _session.SaveAsync(roleClaim, cancellationToken);
             await FlushChangesAsync(cancellationToken);
         }
 
@@ -178,13 +178,13 @@ namespace NHibernate.AspNetCore.Identity {
                 throw new ArgumentNullException(nameof(claim));
             }
             var claims = await RoleClaims.Where(
-                    rc => rc.RoleId == role.Id
+                    rc => rc.RoleId.Equals(role.Id)
                         && rc.ClaimValue == claim.Value &&
                         rc.ClaimType == claim.Type
                 )
                 .ToListAsync(cancellationToken);
             foreach (var c in claims) {
-                await session.DeleteAsync(c, cancellationToken);
+                await _session.DeleteAsync(c, cancellationToken);
             }
             await FlushChangesAsync(cancellationToken);
         }
@@ -192,8 +192,8 @@ namespace NHibernate.AspNetCore.Identity {
         private async Task FlushChangesAsync(
             CancellationToken cancellationToken = default
         ) {
-            await session.FlushAsync(cancellationToken);
-            session.Clear();
+            await _session.FlushAsync(cancellationToken);
+            _session.Clear();
         }
 
     }

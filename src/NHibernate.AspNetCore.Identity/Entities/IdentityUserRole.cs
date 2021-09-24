@@ -1,36 +1,20 @@
-using Microsoft.AspNetCore.Identity;
+using System;
 
-namespace NHibernate.AspNetCore.Identity {
-
-    public class IdentityUserRole : IdentityUserRole<string> {
-
-        protected bool Equals(IdentityUserRole other) {
-            return RoleId == other.RoleId
-                && UserId == other.UserId;
-        }
+namespace NHibernate.AspNetCore.Identity.Entities {
+    public class IdentityUserRole<TKey> : Microsoft.AspNetCore.Identity.IdentityUserRole<TKey>
+        where TKey : IEquatable<TKey>
+    {
 
         public override bool Equals(object obj) {
-            if (ReferenceEquals(null, obj)) {
-                return false;
-            }
-            if (ReferenceEquals(this, obj)) {
-                return true;
-            }
-            if (obj.GetType() != GetType()) {
-                return false;
-            }
-            return Equals((IdentityUserRole)obj);
+            var userRole = (IdentityUserRole<TKey>)obj;
+            return UserId.Equals(userRole.UserId) &&
+                   RoleId.Equals(userRole.RoleId);
         }
 
-        public override int GetHashCode() {
-            unchecked {
-                var hashCode = 0;
-                hashCode = RoleId.GetHashCode();
-                hashCode = (hashCode * 397) ^ UserId.GetHashCode();
-                return hashCode;
-            }
+        public override int GetHashCode()
+        {
+            return (UserId + "|" + RoleId).GetHashCode();
         }
-
     }
 
 }

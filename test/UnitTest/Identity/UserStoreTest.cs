@@ -1,17 +1,14 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using NUnit.Framework;
-using NHibernate.Cfg;
 using NHibernate.AspNetCore.Identity;
 using NHibernate.NetCore;
 using NHibernate;
 using NHibernate.Linq;
-using WebTest.Entities;
 using NHIdentityUser = NHibernate.AspNetCore.Identity.IdentityUser;
 using NHIdentityRole = NHibernate.AspNetCore.Identity.IdentityRole;
 
@@ -20,8 +17,8 @@ namespace UnitTest.Identity {
     [TestFixture]
     public class UserStoreTest : BaseTest, IDisposable {
 
-        private readonly UserStore<NHIdentityUser, NHIdentityRole> store;
-        private readonly ISessionFactory sessionFactory;
+        private readonly UserStore<NHIdentityUser, NHIdentityRole, string> _store;
+        private readonly ISessionFactory _sessionFactory;
 
         public UserStoreTest() {
             var builder = new LoggingBuilder();
@@ -30,21 +27,21 @@ namespace UnitTest.Identity {
             var cfg = ConfigNHibernate();
             cfg.AddIdentityMappings();
             AddXmlMapping(cfg);
-            sessionFactory = cfg.BuildSessionFactory();
-            store = new UserStore<NHIdentityUser, NHIdentityRole>(
-                sessionFactory.OpenSession(),
+            _sessionFactory = cfg.BuildSessionFactory();
+            _store = new UserStore<NHIdentityUser, NHIdentityRole, string>(
+                _sessionFactory.OpenSession(),
                 new IdentityErrorDescriber()
             );
         }
 
         public void Dispose() {
-            store?.Dispose();
-            sessionFactory?.Dispose();
+            _store?.Dispose();
+            _sessionFactory?.Dispose();
         }
 
         [Test]
         public async Task _01_CanQueryAllUsers() {
-            var users = await store.Users.ToListAsync();
+            var users = await _store.Users.ToListAsync();
             Assert.NotNull(users);
             Assert.True(users.Count >= 0);
         }
@@ -64,7 +61,7 @@ namespace UnitTest.Identity {
                 PasswordHash = null,
                 SecurityStamp = null
             };
-            var result = await store.CreateAsync(user);
+            var result = await _store.CreateAsync(user);
             Assert.True(result.Succeeded);
             var id = user.Id;
             Assert.IsNotEmpty(id);
@@ -72,40 +69,40 @@ namespace UnitTest.Identity {
 
             user.LockoutEnabled = true;
             user.LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(20);
-            result = await store.UpdateAsync(user);
+            result = await _store.UpdateAsync(user);
             Assert.True(result.Succeeded);
 
-            var lockouts = await store.Users
+            var lockouts = await _store.Users
                 .Where(u => u.LockoutEnabled)
                 .CountAsync();
             Assert.True(lockouts > 0);
 
-            user = await store.FindByEmailAsync(user.NormalizedEmail);
+            user = await _store.FindByEmailAsync(user.NormalizedEmail);
             Assert.True(user.Id == id);
 
-            user = await store.FindByNameAsync(user.NormalizedUserName);
+            user = await _store.FindByNameAsync(user.NormalizedUserName);
             Assert.True(user.Id == id);
 
-            user = await store.FindByIdAsync(id);
+            user = await _store.FindByIdAsync(id);
             Assert.True(user.Id == id);
 
             var claim = new Claim("Test", Guid.NewGuid().ToString("N"));
-            await store.AddClaimsAsync(user, new [] { claim });
-            var claims = await store.GetClaimsAsync(user);
+            await _store.AddClaimsAsync(user, new [] { claim });
+            var claims = await _store.GetClaimsAsync(user);
             Assert.True(claims.Count > 0);
 
-            var users = await store.GetUsersForClaimAsync(claim);
+            var users = await _store.GetUsersForClaimAsync(claim);
             Assert.IsNotEmpty(users);
 
-            await store.RemoveClaimsAsync(user, claims);
+            await _store.RemoveClaimsAsync(user, claims);
 
             var loginInfo = new Microsoft.AspNetCore.Identity.UserLoginInfo(
                 "test",
                 Guid.NewGuid().ToString("N"),
                 "Test"
             );
-            await store.AddLoginAsync(user, loginInfo);
-            await store.SetTokenAsync(
+            await _store.AddLoginAsync(user, loginInfo);
+            await _store.SetTokenAsync(
                 user,
                 loginInfo.LoginProvider,
                 loginInfo.ProviderDisplayName,
@@ -113,26 +110,26 @@ namespace UnitTest.Identity {
                 CancellationToken.None
             );
 
-            await store.RemoveTokenAsync(
+            await _store.RemoveTokenAsync(
                 user,
                 loginInfo.LoginProvider,
                 loginInfo.ProviderDisplayName,
                 CancellationToken.None
             );
 
-            await store.RemoveLoginAsync(
+            await _store.RemoveLoginAsync(
                 user,
                 loginInfo.LoginProvider,
                 loginInfo.ProviderKey
             );
 
-            result = await store.DeleteAsync(user);
+            result = await _store.DeleteAsync(user);
             Assert.True(result.Succeeded);
         }
 
         [Test]
         public async Task _03_CanGetRolesForUser() {
-            using var session = sessionFactory.OpenSession();
+            using var session = _sessionFactory.OpenSession();
             var user = new NHIdentityUser { Id = "1579928865223010012" };
             // Assert.IsNotNull(user);
             // var userId = user.Id;
@@ -141,7 +138,7 @@ namespace UnitTest.Identity {
             //     where userRole.UserId == userId
             //     select role.Name;
             // var roles = await query.ToListAsync(CancellationToken.None);
-            var roles = await store.GetRolesAsync(user);
+            var roles = await _store.GetRolesAsync(user);
             Console.WriteLine(roles.Count);
         }
     }

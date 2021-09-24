@@ -1,36 +1,20 @@
-using Microsoft.AspNetCore.Identity;
 
-namespace NHibernate.AspNetCore.Identity {
+using System;
 
-    public class IdentityUserLogin : IdentityUserLogin<string> {
-
-        protected bool Equals(IdentityUserLogin other) {
-            return LoginProvider == other.LoginProvider
-                && ProviderKey == other.ProviderKey;
+namespace NHibernate.AspNetCore.Identity.Entities {
+    public class IdentityUserLogin<TKey> : Microsoft.AspNetCore.Identity.IdentityUserLogin<TKey>
+        where TKey : IEquatable<TKey>
+    {
+        public override bool Equals(object obj)
+        {
+            var userLogin = (IdentityUserLogin<TKey>) obj;
+            return LoginProvider.Equals(userLogin.LoginProvider) &&
+                   ProviderKey.Equals(userLogin.ProviderKey);
         }
 
-        public override bool Equals(object obj) {
-            if (ReferenceEquals(null, obj)) {
-                return false;
-            }
-            if (ReferenceEquals(this, obj)) {
-                return true;
-            }
-            if (obj.GetType() != GetType()) {
-                return false;
-            }
-            return Equals((IdentityUserLogin)obj);
+        public override int GetHashCode()
+        {
+            return (LoginProvider + "|" + ProviderKey).GetHashCode();
         }
-
-        public override int GetHashCode() {
-            unchecked {
-                var hashCode = 0;
-                hashCode = LoginProvider.GetHashCode();
-                hashCode = (hashCode * 397) ^ ProviderKey.GetHashCode();
-                return hashCode;
-            }
-        }
-
     }
-
 }

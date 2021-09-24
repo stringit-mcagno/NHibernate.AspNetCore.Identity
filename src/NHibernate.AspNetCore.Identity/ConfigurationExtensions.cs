@@ -1,4 +1,8 @@
 ﻿using System;
+using FluentNHibernate.Cfg;
+using Microsoft.AspNetCore.Identity;
+using NHibernate.AspNetCore.Identity.Mappings;
+using NHibernate.AspNetCore.Identity.Mappings.Base;
 using NHibernate.Cfg;
 using NHibernate.Mapping.ByCode;
 
@@ -6,58 +10,16 @@ namespace NHibernate.AspNetCore.Identity {
 
     public static class ConfigurationExtensions {
 
-        public static Configuration AddIdentityMappings(this Configuration cfg) {
-            var dialect = cfg.GetProperty(NHibernate.Cfg.Environment.Dialect);
-            if (dialect.IndexOf("PostgreSQL", StringComparison.OrdinalIgnoreCase) > -1) {
-                cfg.AddIdentityMappingsForPostgres();
-            }
-            else if (dialect.IndexOf("MySQL", StringComparison.OrdinalIgnoreCase) > -1) {
-                cfg.AddIdentityMappingsForMySql();
-            }
-            else if (dialect.IndexOf("MsSql", StringComparison.OrdinalIgnoreCase) > -1) {
-                cfg.AddIdentityMappingsForMsSql();
-            }
-            else if (dialect.IndexOf("Sqlite", StringComparison.OrdinalIgnoreCase) > -1) {
-                cfg.AddIdentityMappingsForSqlite();
-            }
-            else {
-                throw new NotSupportedException(
-                    "Only support PostgreSQL, MsSql, MySQL, Sqlite, your dialect must contain one of these words!"
-                );
-            }
-            return cfg;
-        }
-
-        public static Configuration AddIdentityMappingsForPostgres(
-            this Configuration cfg
-        ) {
-            var mapping = ConfigurationHelper.GetIdentityMappingForPostgreSql();
-            cfg.AddXml(mapping.AsString());
-            return cfg;
-        }
-
-        public static Configuration AddIdentityMappingsForMsSql(
-            this Configuration cfg
-        ) {
-            var mapping = ConfigurationHelper.GetIdentityMappingForMsSql();
-            cfg.AddXml(mapping.AsString());
-            return cfg;
-        }
-
-        public static Configuration AddIdentityMappingsForMySql(
-            this Configuration cfg
-        ) {
-            var mapping = ConfigurationHelper.GetIdentityMappingForMySql();
-            cfg.AddXml(mapping.AsString());
-            return cfg;
-        }
-
-        public static Configuration AddIdentityMappingsForSqlite(
-            this Configuration cfg
-        ) {
-            var mapping = ConfigurationHelper.GetIdentityMappingForSqlite();
-            cfg.AddXml(mapping.AsString());
-            return cfg;
+        public static void AddIdentityMappings<TUser, TKey>(this MappingConfiguration cfg)
+            where TKey : IEquatable<TKey>
+            where TUser : IdentityUser<TKey> {
+            cfg.FluentMappings.Add<IdentityRoleMap<TKey>>();
+            cfg.FluentMappings.Add<IdentityRoleClaimMap<TKey>>();
+            cfg.FluentMappings.Add<IdentityUserMap<TUser, TKey>>();
+            cfg.FluentMappings.Add<IdentityUserClaimMap<TKey>>();
+            cfg.FluentMappings.Add<IdentityUserLoginMap<TKey>>();
+            cfg.FluentMappings.Add<IdentityUserRoleMap<TKey>>();
+            cfg.FluentMappings.Add<IdentityUserTokenMap<TKey>>();
         }
     }
 
