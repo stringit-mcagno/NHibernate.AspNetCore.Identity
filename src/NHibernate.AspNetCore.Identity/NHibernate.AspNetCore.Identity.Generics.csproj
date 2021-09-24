@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Title>NHibernate.AspNetCore.Identity with Generic types support</Title>
+    <Authors>Matteo Cagno</Authors>
+    <Description>ASPNET Core Identity provider that uses NHibernate for storage and supports generics for identity types. (Build in support for PostgreSQL, SqlServer, MySql, Sqlite)</Description>
+    <PackageId>NHibernate.AspNetCore.Identity.Generics</PackageId>
+    <PackageVersion>5.0.11</PackageVersion>
+    <PackageReleaseNotes>Added support to generic types</PackageReleaseNotes>
+    <PackageTags>nhibernate aspnetcore identity provider</PackageTags>
+    <PackageProjectUrl>https://github.com/stringit-mcagno/NHibernate.AspNetCore.Identity.Generics</PackageProjectUrl>
+    <PackageLicense>https://github.com/nhibernate/NHibernate.AspNetCore.Identity/blob/master/LICENSE.txt</PackageLicense>
+    <RepositoryUrl>https://github.com/stringit-mcagno/NHibernate.AspNetCore.Identity.Generics</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <AssemblyName>NHibernate.AspNetCore.Identity.Generics</AssemblyName>
+    <RootNamespace>NHibernate.AspNetCore.Identity</RootNamespace>
+    <LangVersion>8</LangVersion>
+    <Product>NHibernate.AspNetCore.Identity.Generics</Product>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentNHibernate" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="5.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="5.0.8" />
+    <PackageReference Include="NHibernate" Version="5.3.9" />
+  </ItemGroup>
+</Project>
