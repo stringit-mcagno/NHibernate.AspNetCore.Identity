@@ -13,7 +13,6 @@ namespace NHibernate.AspNetCore.Identity.Mappings.Base {
         }
         public IdentityUserMap(string tableName = "Users", string idColumn = "Id", string userNameColumn = "UserName")
         {
-            Schema("public");
             Table(tableName);
             Id(e => e.Id)
                 .Column(idColumn)
