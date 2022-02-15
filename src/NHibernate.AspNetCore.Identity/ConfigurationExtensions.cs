@@ -1,10 +1,7 @@
 ﻿using System;
 using FluentNHibernate.Cfg;
 using Microsoft.AspNetCore.Identity;
-using NHibernate.AspNetCore.Identity.Mappings;
 using NHibernate.AspNetCore.Identity.Mappings.Base;
-using NHibernate.Cfg;
-using NHibernate.Mapping.ByCode;
 
 namespace NHibernate.AspNetCore.Identity {
 
