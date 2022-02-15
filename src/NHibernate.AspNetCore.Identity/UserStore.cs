@@ -10,7 +10,7 @@ using NHibernate.Linq;
 namespace NHibernate.AspNetCore.Identity {
 
     public class UserStore<TUser, TRole, TKey> :
-        UserStoreBase<TUser, TRole, TKey, IdentityUserClaim<TKey>, IdentityUserRole<TKey>, Entities.IdentityUserLogin<TKey>, Entities.IdentityUserToken<TKey>, IdentityRoleClaim<TKey>>,
+        UserStoreBase<TUser, TRole, TKey, IdentityUserClaim<TKey>, Entities.IdentityUserRole<TKey>, Entities.IdentityUserLogin<TKey>, Entities.IdentityUserToken<TKey>, IdentityRoleClaim<TKey>>,
         IProtectedUserStore<TUser>
         where TUser : IdentityUser<TKey>
         where TRole : IdentityRole<TKey>
@@ -31,7 +31,7 @@ namespace NHibernate.AspNetCore.Identity {
 
         private IQueryable<IdentityUserClaim<TKey>> UserClaims => session.Query<IdentityUserClaim<TKey>>();
 
-        private IQueryable<IdentityUserRole<TKey>> UserRoles => session.Query<IdentityUserRole<TKey>>();
+        private IQueryable<Entities.IdentityUserRole<TKey>> UserRoles => session.Query<Entities.IdentityUserRole<TKey>>();
 
         private IQueryable<Entities.IdentityUserLogin<TKey>> UserLogins => session.Query<Entities.IdentityUserLogin<TKey>>();
 
@@ -129,7 +129,7 @@ namespace NHibernate.AspNetCore.Identity {
             return role;
         }
 
-        protected override async Task<IdentityUserRole<TKey>> FindUserRoleAsync(
+        protected override async Task<Entities.IdentityUserRole<TKey>> FindUserRoleAsync(
             TKey userId,
             TKey roleId,
             CancellationToken cancellationToken
